@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -41,7 +41,6 @@ namespace ShrinkMe
             harmony = new(ModGUID);
             harmony.PatchAll(assembly);
             ServerConfigLocked = config("1 - General", "Lock Configuration", true, "If on, the configuration is locked and can be changed by server admins only.");
-            configSync.AddLockingConfigEntry(ServerConfigLocked);
             HaldorPipe = new("odinspipe", "HaldorsMagicPipe");           //add item
             HaldorPipe.Crafting.Add(CraftingTable.Forge, 2);
             HaldorPipe.Name.English("HaldorsMagicPipe");
@@ -61,15 +60,10 @@ namespace ShrinkMe
         [HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
         public class DBPatch
         {
-            public static void Prefix(ObjectDB __instance)
+            public static void Postfix(ObjectDB __instance)
             {
                 if (__instance.m_StatusEffects.Count <= 0) return;
                 __instance.m_StatusEffects.Add(ShrinkStat);
-                
-            }
-
-            public static void Postfix()
-            {
                 var itemtoadd = HaldorPipe?.Prefab;
                 itemtoadd!.GetComponent<ItemDrop>().m_itemData.m_shared.m_equipStatusEffect = ShrinkStat;
             }
